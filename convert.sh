@@ -29,7 +29,7 @@ for i in `seq 1 ${frame_count}`; do
     convert frames/$i.jpg -contrast -resize 23x16! -type bilevel frames/$i.gif
 done
 
-echo -e "${c1}Converting frames to assembly...${nc}"
+echo -e "\n${c1}Converting frames to assembly...${nc}"
 
 echo "mov_data" >> src/movie.s
 bin/frames2asm $frame_count >> src/movie.s
