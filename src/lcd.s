@@ -1,7 +1,7 @@
 ;-------------------------------------------------------------------------------
 ; File: lcd.s
 ; Author: Christoffer Rehn
-; Last modified: 30/4/2015
+; Last modified: 1/5/2015
 ;
 ; Provides some utility functions for the HD44780 LCD controller.
 ;
@@ -32,10 +32,10 @@ r_putc
 
 		MOV	R3, #bt_io
 
+		; R/not(W) = 1, RS = 0, enable backlight and disable LEDs
 		LDRB	R2, [R3, #bt_ctrl]
-		ORR	R2, R2, #(lcd_b_rw OR lcd_b_bl)	; R/not(W) = 1 and enable backlight
-		BIC	R2, R2, #lcd_b_rs		; RS = 0
-		BIC	R2, R2, #lcd_b_led		; Disable LEDs
+		ORR	R2, R2, #(lcd_b_rw OR lcd_b_bl)
+		BIC	R2, R2, #(lcd_b_rs OR lcd_b_led)
 		STRB	R2, [R3, #bt_ctrl]
 
 lcd_l_putc_busy	ORR	R2, R2, #lcd_b_e		; E = 1
@@ -46,12 +46,12 @@ lcd_l_putc_busy	ORR	R2, R2, #lcd_b_e		; E = 1
 		BIC	R2, R2, #lcd_b_e		; E = 0
 		STRB	R2, [R3, #bt_ctrl]
 
-		ANDS	R4, R4, #lcd_b_busy
+		ANDS	R4, R4, #lcd_b_busy		; Busy?
 		BNE	lcd_l_putc_busy
 
 		BIC	R2, R2, #lcd_b_rw		; R/not(W) = 0
 		CMP	R1, #bt_data
-		ORREQ	R2, R2, #lcd_b_rs		; RS = 1 if R1 == lcd_data
+		ORREQ	R2, R2, #lcd_b_rs		; RS = 1 if R1 == bt_data
 		BICNE	R2, R2, #lcd_b_rs		; RS = 0 otherwise
 		STRB	R2, [R3, #bt_ctrl]
 
@@ -82,9 +82,9 @@ l_puts_c	LDRB	R0, [R2], #1
 		CMP	R0, #0
 		BEQ	puts_end
 
-		PUSH	{R1, R2}
+		PUSH	{R1-R2}
 		BL	r_putc
-		POP	{R1, R2}
+		POP	{R1-R2}
 		B	l_puts_c
 
 puts_end	POP	{LR}

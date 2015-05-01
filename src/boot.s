@@ -1,7 +1,7 @@
 ;-------------------------------------------------------------------------------
 ; File: boot.s
 ; Author: Christoffer Rehn
-; Last modified: 29/4/2015
+; Last modified: 1/5/2015
 ;
 ; Sets up the system at boot. Timer IRQs are enabled (for updating the LCD
 ; display) and the main program is run in supervisor mode (for simplicity's
@@ -47,17 +47,16 @@ bt_irq_stack
 
 ; IRQ
 bt_ev_irq	; Acknowledge interrupt
-		PUSH	{R0-R1}
+		PUSH	{R0-R1, LR}
+
 		MOV	R1, #bt_io
 		LDRB	R0, [R1, #bt_irq_req]
 		BIC	R0, R0, #bt_b_irq_ack
 		STRB	R0, [R1, #bt_irq_req]
-		POP	{R0-R1}
 
-		PUSH	{LR}
 		BL	__timer_irq
-		POP	{LR}
 
+		POP	{R0-R1, LR}
 		SUBS	PC, LR, #4
 
 ; Reset
