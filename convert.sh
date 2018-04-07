@@ -9,18 +9,19 @@ nc='\033[0m'
 echo -e "${c2}File: clips/${1}${nc}"
 echo -e "${c1}Removing old stuff...${nc}"
 
-rm frames/*
+rm -f frames
+mkdir -p frames
 
 echo -e "${c1}Extracting frames at ${fps} FPS...${nc}"
 
-bin/ffmpeg -loglevel error -stats -i clips/$1 -r $fps frames/%d.jpg
+ffmpeg -loglevel error -stats -i $1 -r $fps frames/%d.jpg
 frame_count=`ls -1 frames | wc -l`
 
 echo -e "${c2}Extracted ${frame_count} frames${nc}"
 
-echo -e "s_mov_playing DEFB \"Playing\", 0\nALIGN" > src/movie.s
-echo -e "s_mov_title DEFB \"${1}\", 0\nALIGN" >> src/movie.s
-echo -e "mov_frame_count DEFW ${frame_count}" >> src/movie.s
+echo -e "s_mov_playing DEFB \"Playing\", 0\nALIGN" > movie.s
+echo -e "s_mov_title DEFB \"${1}\", 0\nALIGN" >> movie.s
+echo -e "mov_frame_count DEFW ${frame_count}" >> movie.s
 
 echo -e "${c1}Preprocessing frames...${nc}"
 
@@ -31,8 +32,8 @@ done
 
 echo -e "\n${c1}Converting frames to assembly...${nc}"
 
-echo "mov_data" >> src/movie.s
-bin/frames2asm $frame_count >> src/movie.s
-echo -e "ALIGN" >> src/movie.s
+echo "mov_data" >> movie.s
+bin/frames2asm $frame_count >> movie.s
+echo -e "ALIGN" >> movie.s
 
 echo -e "${c2}Done!${nc}"
